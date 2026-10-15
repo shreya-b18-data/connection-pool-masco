@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Connection Pool - Graph Theory Matcher</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        canvas {
+            border: 2px solid #e2e8f0;
+            border-radius: 1rem;
+            background: linear-gradient(45deg, #f8fafc 0%, #f1f5f9 100%);
+        }
+        .gradient-text {
+            background: linear-gradient(45deg, #8b5cf6, #3b82f6, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .interest-tag {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+        .match-card {
+            transition: all 0.3s ease;
+        }
+        .match-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .algo-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="container-card w-full max-w-7xl mx-auto p-6 md:p-8 grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <!-- Left Panel - User Interface -->
+        <div class="xl:col-span-1 space-y-6">
+            <div class="text-center mb-8">
+                <div class="flex justify-center items-center space-x-3 mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" viewBox="0 0 48 48">
+                        <defs>
+                            <radialGradient id="instagram-gradient" cx=".4" cy=".6" r=".8">
+                                <stop offset="0.1" stop-color="#fdc539"/>
+                                <stop offset="0.2" stop-color="#f56040"/>
+                                <stop offset="0.6" stop-color="#d6249f"/>
+                                <stop offset="1" stop-color="#405de6"/>
+                            </radialGradient>
+                        </defs>
+                        <rect fill="url(#instagram-gradient)" x="4" y="4" width="40" height="40" rx="10" ry="10" stroke="#fff" stroke-width="2"/>
+                        <circle cx="24" cy="24" r="10" fill="none" stroke="#fff" stroke-width="2"/>
+                        <circle cx="35" cy="13" r="2" fill="#fff"/>
+                    </svg>
+                    <h1 class="text-2xl md:text-3xl font-bold gradient-text">Connection Pool</h1>
+                </div>
+                <p class="text-gray-600 text-sm md:text-base">Discover meaningful connections through graph theory and advanced algorithms</p>
+            </div>
+
+            <!-- Algorithm Selector -->
+            <div class="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-xl">
+                <label class="block text-sm font-semibold text-gray-700 mb-3">Matching Algorithm:</label>
+                <select id="algorithm-select" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                    <option value="standard">Standard Similarity</option>
+                    <option value="backtracking">Backtracking Optimization</option>
+                    <option value="knapsack">Knapsack (Branch & Bound)</option>
+                    <option value="tsp">TSP Connection Path</option>
+                    <option value="maxflow">Max Flow Analysis</option>
+                </select>
+                <div id="algorithm-info" class="mt-3 text-xs text-gray-600 bg-white p-3 rounded-lg">
+                    Standard similarity matching using cosine similarity and cluster analysis
+                </div>
+            </div>
+
+            <!-- User Selection -->
+            <div class="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-xl">
+                <label for="user-select" class="block text-sm font-semibold text-gray-700 mb-3">Select User Profile:</label>
+                <select id="user-select" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                    <option value="" disabled selected>Choose a user</option>
+                </select>
+            </div>
+
+            <!-- User Details -->
+            <div id="user-details" class="hidden bg-white p-6 rounded-xl border-2 border-gray-100">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">User Profile</h3>
+                <div id="user-info" class="space-y-3"></div>
+            </div>
+
+            <!-- Action Button -->
+            <button id="find-connections-btn" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition duration-300 ease-in-out focus:outline-none focus:ring-4 focus:ring-purple-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                <span id="btn-text">🔍 Find Smart Connections</span>
+                <div id="loading-spinner" class="hidden loading-spinner inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full ml-2"></div>
+            </button>
+
+            <!-- Algorithm Stats -->
+            <div id="algorithm-stats" class="hidden bg-gradient-to-r from-green-50 to-teal-50 p-4 rounded-xl">
+                <h3 class="text-sm font-bold text-gray-800 mb-2">Algorithm Performance</h3>
+                <div id="stats-content" class="text-xs text-gray-600 space-y-1"></div>
+            </div>
+
+            <!-- Recommendations -->
+            <div id="recommendations" class="space-y-4">
+                <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                    <span class="mr-2">🎯</span> Smart Recommendations
+                </h2>
+                <div id="recommendation-list" class="space-y-3">
+                    <div class="text-gray-500 text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
+                        Select a user and algorithm, then click "Find Smart Connections"
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Visualizations -->
+        <div class="xl:col-span-2 space-y-8">
+            <!-- Network Graph -->
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold text-gray-800">🌐 Social Network Graph</h2>
+                    <div class="flex space-x-2">
+                        <div class="flex items-center space-x-2 text-sm">
+                            <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                            <span class="text-gray-600">Fashion & Food</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-sm">
+                            <div class="w-3 h-3 rounded-full bg-teal-400"></div>
+                            <span class="text-gray-600">Tech & Creative</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-sm">
+                            <div class="w-3 h-3 rounded-full bg-blue-400"></div>
+                            <span class="text-gray-600">Fitness & Adventure</span>
+                        </div>
+                    </div>
+                </div>
+                <canvas id="network-canvas" class="w-full h-96"></canvas>
+            </div>
+
+            <!-- Interest Distribution -->
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">📊 Interest-Based Clustering</h2>
+                <canvas id="interest-canvas" class="w-full h-80"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class InstagramConnectionPool {
+            constructor() {
+                this.users = {
+                    'alice': { 
+                        name: 'Alice Johnson', 
+                        cluster: 2, 
+                        color: '#45B7D1',
+                        interests: ['fitness', 'travel', 'food'],
+                        interestVector: [0.329, 0.250, 0.354, 0.033, 0.033, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        connections: ['grace', 'bob']
+                    },
+                    'bob': { 
+                        name: 'Bob Smith', 
+                        cluster: 1, 
+                        color: '#4ECDC4',
+                        interests: ['technology', 'lifestyle', 'fashion'],
+                        interestVector: [0.070, 0.070, 0, 0.559, 0.070, 0, 0, 0.230, 0, 0, 0, 0, 0, 0, 0],
+                        connections: ['alice', 'henry']
+                    },
+                    'carol': { 
+                        name: 'Carol Davis', 
+                        cluster: 0, 
+                        color: '#FF6B6B',
+                        interests: ['fashion', 'food', 'art'],
+                        interestVector: [0, 0.377, 0, 0, 0.435, 0.188, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        connections: ['emma']
+                    },
+                    'david': { 
+                        name: 'David Wilson', 
+                        cluster: 2, 
+                        color: '#45B7D1',
+                        interests: ['gaming', 'fitness', 'nature'],
+                        interestVector: [0.128, 0, 0.331, 0, 0, 0, 0, 0, 0, 0, 0, 0.341, 0.200, 0, 0],
+                        connections: ['frank']
+                    },
+                    'emma': { 
+                        name: 'Emma Brown', 
+                        cluster: 0, 
+                        color: '#FF6B6B',
+                        interests: ['fashion', 'food', 'music'],
+                        interestVector: [0, 0.309, 0, 0.059, 0.383, 0, 0.249, 0, 0, 0, 0, 0, 0, 0, 0],
+                        connections: ['carol', 'grace']
+                    },
+                    'frank': { 
+                        name: 'Frank Miller', 
+                        cluster: 2, 
+                        color: '#45B7D1',
+                        interests: ['fitness', 'nature', 'sports'],
+                        interestVector: [0, 0, 0.500, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.300, 0.200, 0],
+                        connections: ['david']
+                    },
+                    'grace': { 
+                        name: 'Grace Lee', 
+                        cluster: 1, 
+                        color: '#4ECDC4',
+                        interests: ['art', 'music', 'food'],
+                        interestVector: [0.100, 0.200, 0, 0.200, 0, 0.300, 0.200, 0, 0, 0, 0, 0, 0, 0, 0],
+                        connections: ['alice', 'emma']
+                    },
+                    'henry': { 
+                        name: 'Henry Garcia', 
+                        cluster: 1, 
+                        color: '#4ECDC4',
+                        interests: ['technology', 'business', 'education'],
+                        interestVector: [0, 0, 0, 0.400, 0, 0, 0, 0, 0, 0.300, 0.200, 0.100, 0, 0, 0],
+                        connections: ['bob']
+                    }
+                };
+
+                this.categories = ['travel', 'food', 'fitness', 'technology', 'fashion', 'art', 'music', 'photography', 'lifestyle', 'business', 'education', 'gaming', 'nature', 'sports', 'movies'];
+                this.clusterNames = { 0: 'Fashion & Food Lovers', 1: 'Tech & Creative', 2: 'Fitness & Adventure' };
+                this.clusterColors = { 0: '#FF6B6B', 1: '#4ECDC4', 2: '#45B7D1' };
+                this.algorithmStats = {};
+                
+                this.initializeInterface();
+                this.setupEventListeners();
+                this.drawNetworkGraph();
+                this.drawInterestDistribution();
+            }
+
+            // ADVANCED ALGORITHMS
+
+            // Backtracking Algorithm for optimal connection selection
+            backtrackingOptimization(userKey, maxConnections = 4) {
+                const startTime = performance.now();
+                const currentUser = this.users[userKey];
+                const candidates = [];
+                
+                // Get all potential candidates with their scores
+                Object.keys(this.users).forEach(candidateKey => {
+                    if (candidateKey !== userKey && !currentUser.connections.includes(candidateKey)) {
+                        const similarity = this.calculateSimilarity(userKey, candidateKey);
+                        candidates.push({
+                            userKey: candidateKey,
+                            user: this.users[candidateKey],
+                            score: similarity.combinedScore,
+                            similarity: similarity
+                        });
+                    }
+                });
+
+                let bestSolution = [];
+                let bestScore = 0;
+                let exploredStates = 0;
+
+                // Backtracking function
+                const backtrack = (index, currentSolution, currentScore) => {
+                    exploredStates++;
+
+                    // Base case: reached maximum connections
+                    if (currentSolution.length === maxConnections || index === candidates.length) {
+                        if (currentScore > bestScore) {
+                            bestScore = currentScore;
+                            bestSolution = [...currentSolution];
+                        }
+                        return;
+                    }
+
+                    // Pruning: if we can't beat best score even with all remaining perfect scores
+                    const remainingSlots = maxConnections - currentSolution.length;
+                    const maxPossibleScore = currentScore + remainingSlots;
+                    if (maxPossibleScore <= bestScore) {
+                        return;
+                    }
+
+                    // Try including current candidate
+                    if (this.isValidConnection(currentSolution, candidates[index])) {
+                        currentSolution.push(candidates[index]);
+                        backtrack(index + 1, currentSolution, currentScore + candidates[index].score);
+                        currentSolution.pop();
+                    }
+
+                    // Try excluding current candidate
+                    backtrack(index + 1, currentSolution, currentScore);
+                };
+
+                // Sort candidates by score for better pruning
+                candidates.sort((a, b) => b.score - a.score);
+                backtrack(0, [], 0);
+
+                const endTime = performance.now();
+                
+                this.algorithmStats = {
+                    algorithm: 'Backtracking',
+                    exploredStates: exploredStates,
+                    executionTime: (endTime - startTime).toFixed(2),
+                    bestScore: bestScore.toFixed(3),
+                    solutionSize: bestSolution.length
+                };
+
+                return bestSolution;
+            }
+
+            // Check if a connection is valid (no conflicts)
+            isValidConnection(currentSolution, candidate) {
+                // Check for cluster diversity (optional constraint)
+                const clusterCount = {};
+                currentSolution.forEach(conn => {
+                    clusterCount[conn.user.cluster] = (clusterCount[conn.user.cluster] || 0) + 1;
+                });
+                
+                // Allow maximum 2 connections from same cluster for diversity
+                if (clusterCount[candidate.user.cluster] >= 2) {
+                    return false;
+                }
+                
+                return true;
+            }
+
+            // Branch and Bound for Knapsack problem
+            knapsackBranchBound(userKey, capacity = 10) {
+                const startTime = performance.now();
+                const currentUser = this.users[userKey];
+                const items = [];
+                
+                Object.keys(this.users).forEach(candidateKey => {
+                    if (candidateKey !== userKey && !currentUser.connections.includes(candidateKey)) {
+                        const similarity = this.calculateSimilarity(userKey, candidateKey);
+                        items.push({
+                            userKey: candidateKey,
+                            user: this.users[candidateKey],
+                            similarity: similarity,
+                            profit: similarity.combinedScore * 100,
+                            weight: Math.floor(Math.random() * 3) + 1
+                        });
+                    }
+                });
+
+                items.sort((a, b) => (b.profit / b.weight) - (a.profit / a.weight));
+
+                let maxProfit = 0;
+                let bestItems = [];
+                let nodesExplored = 0;
+
+                const bound = (level, profit, weight) => {
+                    if (weight >= capacity) return 0;
+                    
+                    let profitBound = profit;
+                    let j = level + 1;
+                    let totalWeight = weight;
+                    
+                    while (j < items.length && totalWeight + items[j].weight <= capacity) {
+                        totalWeight += items[j].weight;
+                        profitBound += items[j].profit;
+                        j++;
+                    }
+                    
+                    if (j < items.length) {
+                        profitBound += (capacity - totalWeight) * items[j].profit / items[j].weight;
+                    }
+                    
+                    return profitBound;
+                };
+
+                const knapsackRecursive = (level, profit, weight, selected) => {
+                    nodesExplored++;
+
+                    if (level === items.length) {
+                        if (profit > maxProfit) {
+                            maxProfit = profit;
+                            bestItems = [...selected];
+                        }
+                        return;
+                    }
+
+                    // Include item
+                    if (weight + items[level].weight <= capacity) {
+                        const newBound = bound(level, profit + items[level].profit, weight + items[level].weight);
+                        if (newBound > maxProfit) {
+                            knapsackRecursive(level + 1, profit + items[level].profit, weight + items[level].weight, [...selected, items[level]]);
+                        }
+                    }
+
+                    // Exclude item
+                    const excludeBound = bound(level, profit, weight);
+                    if (excludeBound > maxProfit) {
+                        knapsackRecursive(level + 1, profit, weight, selected);
+                    }
+                };
+
+                knapsackRecursive(0, 0, 0, []);
+
+                const endTime = performance.now();
+                
+                this.algorithmStats = {
+                    algorithm: 'Knapsack (Branch & Bound)',
+                    nodesExplored: nodesExplored,
+                    executionTime: (endTime - startTime).toFixed(2),
+                    maxProfit: maxProfit.toFixed(2),
+                    capacity: capacity,
+                    itemsSelected: bestItems.length
+                };
+
+                return bestItems;
+            }
+
+            // TSP for finding optimal connection path
+            tspConnectionPath(userKey) {
+                const startTime = performance.now();
+                const currentUser = this.users[userKey];
+                const candidates = [];
+                
+                Object.keys(this.users).forEach(candidateKey => {
+                    if (candidateKey !== userKey && !currentUser.connections.includes(candidateKey)) {
+                        const similarity = this.calculateSimilarity(userKey, candidateKey);
+                        candidates.push({
+                            userKey: candidateKey,
+                            user: this.users[candidateKey],
+                            similarity: similarity
+                        });
+                    }
+                });
+
+                if (candidates.length === 0) return [];
+
+                const n = Math.min(candidates.length, 5);
+                const selected = candidates.slice(0, n);
+                
+                // Create distance matrix (inverse of similarity for TSP)
+                const distMatrix = Array(n).fill(0).map(() => Array(n).fill(0));
+                for (let i = 0; i < n; i++) {
+                    for (let j = 0; j < n; j++) {
+                        if (i !== j) {
+                            distMatrix[i][j] = 1 - selected[i].similarity.combinedScore;
+                        }
+                    }
+                }
+
+                let minCost = Infinity;
+                let bestPath = [];
+                let statesExplored = 0;
+
+                const tspRecursive = (path, visited, cost) => {
+                    statesExplored++;
+
+                    if (path.length === n) {
+                        if (cost < minCost) {
+                            minCost = cost;
+                            bestPath = [...path];
+                        }
+                        return;
+                    }
+
+                    for (let i = 0; i < n; i++) {
+                        if (!visited[i]) {
+                            const newCost = cost + (path.length > 0 ? distMatrix[path[path.length - 1]][i] : 0);
+                            
+                            if (newCost < minCost) {
+                                visited[i] = true;
+                                path.push(i);
+                                tspRecursive(path, visited, newCost);
+                                path.pop();
+                                visited[i] = false;
+                            }
+                        }
+                    }
+                };
+
+                tspRecursive([], Array(n).fill(false), 0);
+
+                const orderedResults = bestPath.map(idx => selected[idx]);
+
+                const endTime = performance.now();
+                
+                this.algorithmStats = {
+                    algorithm: 'TSP (Branch & Bound)',
+                    statesExplored: statesExplored,
+                    executionTime: (endTime - startTime).toFixed(2),
+                    minPathCost: minCost.toFixed(3),
+                    pathLength: orderedResults.length
+                };
+
+                return orderedResults;
+            }
+
+            // Max Flow using Ford-Fulkerson (Edmonds-Karp)
+            maxFlowAnalysis(userKey) {
+                const startTime = performance.now();
+                const userKeys = Object.keys(this.users);
+                const n = userKeys.length;
+                const source = userKeys.indexOf(userKey);
+                
+                // Build capacity graph
+                const capacity = Array(n).fill(0).map(() => Array(n).fill(0));
+                userKeys.forEach((key, i) => {
+                    const user = this.users[key];
+                    user.connections.forEach(connKey => {
+                        const j = userKeys.indexOf(connKey);
+                        if (j !== -1) {
+                            const sim = this.calculateSimilarity(key, connKey);
+                            capacity[i][j] = Math.round(sim.combinedScore * 100);
+                        }
+                    });
+                });
+
+                const residual = capacity.map(row => [...row]);
+                let maxFlow = 0;
+                let iterations = 0;
+                const parent = Array(n).fill(-1);
+
+                const bfs = (source, sink) => {
+                    const visited = Array(n).fill(false);
+                    const queue = [source];
+                    visited[source] = true;
+                    parent[source] = -1;
+
+                    while (queue.length > 0) {
+                        const u = queue.shift();
+
+                        for (let v = 0; v < n; v++) {
+                            if (!visited[v] && residual[u][v] > 0) {
+                                queue.push(v);
+                                parent[v] = u;
+                                visited[v] = true;
+                                if (v === sink) return true;
+                            }
+                        }
+                    }
+                    return false;
+                };
+
+                // Find max flow to all other nodes
+                const results = [];
+                userKeys.forEach((targetKey, sink) => {
+                    if (sink !== source) {
+                        const residualCopy = capacity.map(row => [...row]);
+                        let flow = 0;
+                        let iter = 0;
+
+                        while (bfs(source, sink) && iter < 100) {
+                            iter++;
+                            let pathFlow = Infinity;
+                            for (let v = sink; v !== source; v = parent[v]) {
+                                const u = parent[v];
+                                pathFlow = Math.min(pathFlow, residual[u][v]);
+                            }
+
+                            for (let v = sink; v !== source; v = parent[v]) {
+                                const u = parent[v];
+                                residual[u][v] -= pathFlow;
+                                residual[v][u] += pathFlow;
+                            }
+
+                            flow += pathFlow;
+                        }
+
+                        if (flow > 0 && !this.users[userKey].connections.includes(targetKey)) {
+                            const similarity = this.calculateSimilarity(userKey, targetKey);
+                            results.push({
+                                userKey: targetKey,
+                                user: this.users[targetKey],
+                                similarity: similarity,
+                                flowCapacity: flow
+                            });
+                        }
+
+                        iterations += iter;
+                    }
+                });
+
+                results.sort((a, b) => b.flowCapacity - a.flowCapacity);
+
+                const endTime = performance.now();
+                
+                this.algorithmStats = {
+                    algorithm: 'Max Flow (Ford-Fulkerson)',
+                    iterations: iterations,
+                    executionTime: (endTime - startTime).toFixed(2),
+                    totalFlow: results.reduce((sum, r) => sum + r.flowCapacity, 0),
+                    pathsFound: results.length
+                };
+
+                return results.slice(0, 4);
+            }
+
+            // STANDARD ALGORITHMS
+
+            calculateSimilarity(user1Key, user2Key) {
+                const user1 = this.users[user1Key];
+                const user2 = this.users[user2Key];
+                
+                const dotProduct = user1.interestVector.reduce((sum, a, i) => sum + a * user2.interestVector[i], 0);
+                const magnitude1 = Math.sqrt(user1.interestVector.reduce((sum, a) => sum + a * a, 0));
+                const magnitude2 = Math.sqrt(user2.interestVector.reduce((sum, a) => sum + a * a, 0));
+                const interestSim = dotProduct / (magnitude1 * magnitude2);
+                
+                const mutualConnections = user1.connections.filter(conn => user2.connections.includes(conn)).length;
+                const totalConnections = new Set([...user1.connections, ...user2.connections]).size;
+                const mutualFactor = totalConnections > 0 ? mutualConnections / totalConnections : 0;
+                
+                const clusterBonus = user1.cluster === user2.cluster ? 0.15 : 0;
+                const combinedScore = (0.6 * interestSim) + (0.25 * mutualFactor) + clusterBonus;
+                
+                return {
+                    interestSimilarity: interestSim,
+                    mutualConnections: mutualConnections,
+                    mutualFactor: mutualFactor,
+                    clusterBonus: clusterBonus,
+                    combinedScore: combinedScore
+                };
+            }
+
+            findRecommendations(userKey, algorithm = 'standard', topN = 4) {
+                switch (algorithm) {
+                    case 'backtracking':
+                        return this.backtrackingOptimization(userKey, topN);
+                    case 'knapsack':
+                        return this.knapsackBranchBound(userKey);
+                    case 'tsp':
+                        return this.tspConnectionPath(userKey);
+                    case 'maxflow':
+                        return this.maxFlowAnalysis(userKey);
+                    default:
+                        return this.standardRecommendations(userKey, topN);
+                }
+            }
+
+            standardRecommendations(userKey, topN = 4) {
+                const startTime = performance.now();
+                const currentUser = this.users[userKey];
+                const recommendations = [];
+                
+                Object.keys(this.users).forEach(candidateKey => {
+                    if (candidateKey !== userKey && !currentUser.connections.includes(candidateKey)) {
+                        const similarity = this.calculateSimilarity(userKey, candidateKey);
+                        recommendations.push({
+                            userKey: candidateKey,
+                            user: this.users[candidateKey],
+                            similarity: similarity
+                        });
+                    }
+                });
+
+                const endTime = performance.now();
+                
+                this.algorithmStats = {
+                    algorithm: 'Standard Similarity',
+                    candidatesEvaluated: recommendations.length,
+                    executionTime: (endTime - startTime).toFixed(2)
+                };
+                
+                return recommendations.sort((a, b) => b.similarity.combinedScore - a.similarity.combinedScore).slice(0, topN);
+            }
+
+            // INTERFACE METHODS
+
+            initializeInterface() {
+                const userSelect = document.getElementById('user-select');
+                Object.keys(this.users).forEach(key => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = this.users[key].name;
+                    userSelect.appendChild(option);
+                });
+            }
+
+            setupEventListeners() {
+                const userSelect = document.getElementById('user-select');
+                const findBtn = document.getElementById('find-connections-btn');
+                const algorithmSelect = document.getElementById('algorithm-select');
+
+                const algorithmDescriptions = {
+                    'standard': 'Standard similarity matching using cosine similarity and cluster analysis',
+                    'backtracking': 'Explores all possible connection combinations with pruning to find optimal matches while maintaining cluster diversity',
+                    'knapsack': 'Uses branch and bound to maximize connection value within capacity constraints (optimal resource allocation)',
+                    'tsp': 'Finds the optimal path through connections to minimize interaction overhead using traveling salesman approach',
+                    'maxflow': 'Calculates maximum connection flow through the network using Ford-Fulkerson algorithm to identify strongest paths'
+                };
+
+                algorithmSelect.addEventListener('change', (e) => {
+                    const info = document.getElementById('algorithm-info');
+                    info.textContent = algorithmDescriptions[e.target.value];
+                });
+
+                userSelect.addEventListener('change', (e) => {
+                    if (e.target.value) {
+                        this.showUserDetails(e.target.value);
+                        findBtn.disabled = false;
+                    } else {
+                        this.hideUserDetails();
+                        findBtn.disabled = true;
+                    }
+                });
+
+                findBtn.addEventListener('click', () => {
+                    const selectedUser = userSelect.value;
+                    const selectedAlgorithm = algorithmSelect.value;
+                    if (selectedUser) {
+                        this.findConnections(selectedUser, selectedAlgorithm);
+                    }
+                });
+            }
+
+            showUserDetails(userKey) {
+                const user = this.users[userKey];
+                const userDetailsDiv = document.getElementById('user-details');
+                const userInfoDiv = document.getElementById('user-info');
+                
+                userInfoDiv.innerHTML = `
+                    <div class="flex items-center space-x-3 mb-3">
+                        <div class="w-4 h-4 rounded-full" style="background-color: ${user.color}"></div>
+                        <span class="font-semibold">${user.name}</span>
+                    </div>
+                    <div class="mb-3">
+                        <span class="text-sm font-medium text-gray-600">Cluster:</span>
+                        <span class="ml-2 text-sm px-2 py-1 rounded-full text-white" style="background-color: ${user.color}">
+                            ${this.clusterNames[user.cluster]}
+                        </span>
+                    </div>
+                    <div class="mb-3">
+                        <span class="text-sm font-medium text-gray-600">Interests:</span>
+                        <div class="flex flex-wrap gap-1 mt-1">
+                            ${user.interests.map(interest => 
+                                `<span class="interest-tag text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded-full">${interest}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-sm font-medium text-gray-600">Connected to:</span>
+                        <div class="flex flex-wrap gap-1 mt-1">
+                            ${user.connections.map(connKey => 
+                                `<span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">${this.users[connKey].name}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                `;
+                
+                userDetailsDiv.classList.remove('hidden');
+            }
+
+            hideUserDetails() {
+                document.getElementById('user-details').classList.add('hidden');
+            }
+
+            async findConnections(userKey, algorithm = 'standard') {
+                const btnText = document.getElementById('btn-text');
+                const spinner = document.getElementById('loading-spinner');
+                const btn = document.getElementById('find-connections-btn');
+                
+                btnText.textContent = 'Analyzing Connections...';
+                spinner.classList.remove('hidden');
+                btn.disabled = true;
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                const recommendations = this.findRecommendations(userKey, algorithm);
+                this.displayRecommendations(recommendations, algorithm);
+                this.displayAlgorithmStats();
+                
+                btnText.textContent = '🔍 Find Smart Connections';
+                spinner.classList.add('hidden');
+                btn.disabled = false;
+                
+                this.highlightUserInGraphs(userKey);
+            }
+
+            displayAlgorithmStats() {
+                const statsDiv = document.getElementById('algorithm-stats');
+                const statsContent = document.getElementById('stats-content');
+                
+                if (this.algorithmStats) {
+                    const stats = Object.entries(this.algorithmStats)
+                        .map(([key, value]) => {
+                            const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                            return `<div><strong>${label}:</strong> ${value}</div>`;
+                        })
+                        .join('');
+                    
+                    statsContent.innerHTML = stats;
+                    statsDiv.classList.remove('hidden');
+                }
+            }
+
+            displayRecommendations(recommendations, algorithm) {
+                const recList = document.getElementById('recommendation-list');
+                
+                if (recommendations.length === 0) {
+                    recList.innerHTML = `
+                        <div class="text-gray-500 text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
+                            No new connections found. This user is already well connected!
+                        </div>
+                    `;
+                    return;
+                }
+
+                const algorithmBadges = {
+                    'backtracking': '<span class="algo-badge bg-purple-100 text-purple-700">Backtracking</span>',
+                    'knapsack': '<span class="algo-badge bg-green-100 text-green-700">Knapsack</span>',
+                    'tsp': '<span class="algo-badge bg-blue-100 text-blue-700">TSP</span>',
+                    'maxflow': '<span class="algo-badge bg-orange-100 text-orange-700">Max Flow</span>',
+                    'standard': ''
+                };
+                
+                recList.innerHTML = recommendations.map((rec, idx) => {
+                    const score = rec.similarity ? rec.similarity.combinedScore : rec.score;
+                    const matchScore = Math.round((score || 0) * 100);
+                    
+                    return `
+                        <div class="match-card bg-white p-4 rounded-xl border-2 border-gray-100 shadow-sm">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-3 h-3 rounded-full" style="background-color: ${rec.user.color}"></div>
+                                    <div>
+                                        <h4 class="font-bold text-gray-800">${rec.user.name}${algorithmBadges[algorithm]}</h4>
+                                        <p class="text-xs text-gray-500">${this.clusterNames[rec.user.cluster]}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-lg font-bold text-purple-600">${matchScore}%</div>
+                                    <div class="text-xs text-gray-500">Match</div>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-2 text-xs">
+                                ${rec.similarity ? `
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Interest Similarity:</span>
+                                        <span class="font-medium">${Math.round(rec.similarity.interestSimilarity * 100)}%</span>
+                                    </div>
+                                    ${rec.similarity.mutualConnections > 0 ? `
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Mutual Connections:</span>
+                                            <span class="font-medium">${rec.similarity.mutualConnections}</span>
+                                        </div>
+                                    ` : ''}
+                                    ${rec.similarity.clusterBonus > 0 ? `
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Same Cluster Bonus:</span>
+                                            <span class="font-medium text-green-600">+15%</span>
+                                        </div>
+                                    ` : ''}
+                                ` : ''}
+                                ${rec.flowCapacity ? `
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Flow Capacity:</span>
+                                        <span class="font-medium">${rec.flowCapacity}</span>
+                                    </div>
+                                ` : ''}
+                                ${rec.profit && rec.weight ? `
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Value/Weight:</span>
+                                        <span class="font-medium">${(rec.profit / rec.weight).toFixed(1)}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            <div class="mt-3 pt-3 border-t border-gray-100">
+                                <div class="flex flex-wrap gap-1">
+                                    ${rec.user.interests.map(interest => 
+                                        `<span class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">${interest}</span>`
+                                    ).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            drawNetworkGraph() {
+                const canvas = document.getElementById('network-canvas');
+                const ctx = canvas.getContext('2d');
+                
+                canvas.width = canvas.offsetWidth * 2;
+                canvas.height = canvas.offsetHeight * 2;
+                ctx.scale(2, 2);
+                
+                const width = canvas.offsetWidth;
+                const height = canvas.offsetHeight;
+                
+                const positions = {};
+                const userKeys = Object.keys(this.users);
+                userKeys.forEach((key, i) => {
+                    const angle = (i / userKeys.length) * 2 * Math.PI;
+                    const radius = Math.min(width, height) * 0.35;
+                    positions[key] = {
+                        x: width/2 + Math.cos(angle) * radius,
+                        y: height/2 + Math.sin(angle) * radius
+                    };
+                });
+                
+                ctx.clearRect(0, 0, width, height);
+                
+                ctx.strokeStyle = '#e2e8f0';
+                ctx.lineWidth = 2;
+                userKeys.forEach(userKey => {
+                    const user = this.users[userKey];
+                    const pos = positions[userKey];
+                    
+                    user.connections.forEach(connKey => {
+                        if (positions[connKey]) {
+                            const connPos = positions[connKey];
+                            ctx.beginPath();
+                            ctx.moveTo(pos.x, pos.y);
+                            ctx.lineTo(connPos.x, connPos.y);
+                            ctx.stroke();
+                        }
+                    });
+                });
+                
+                userKeys.forEach(userKey => {
+                    const user = this.users[userKey];
+                    const pos = positions[userKey];
+                    
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, 25, 0, 2 * Math.PI);
+                    ctx.fillStyle = user.color;
+                    ctx.fill();
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = '#374151';
+                    ctx.font = '12px Inter, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(user.name.split(' ')[0], pos.x, pos.y + 40);
+                });
+                
+                this.networkPositions = positions;
+            }
+
+            drawInterestDistribution() {
+                const canvas = document.getElementById('interest-canvas');
+                const ctx = canvas.getContext('2d');
+                
+                canvas.width = canvas.offsetWidth * 2;
+                canvas.height = canvas.offsetHeight * 2;
+                ctx.scale(2, 2);
+                
+                const width = canvas.offsetWidth;
+                const height = canvas.offsetHeight;
+                
+                ctx.clearRect(0, 0, width, height);
+                
+                const clusters = {};
+                Object.keys(this.users).forEach(userKey => {
+                    const user = this.users[userKey];
+                    if (!clusters[user.cluster]) {
+                        clusters[user.cluster] = [];
+                    }
+                    clusters[user.cluster].push({ key: userKey, ...user });
+                });
+                
+                const clusterKeys = Object.keys(clusters);
+                clusterKeys.forEach((clusterKey, i) => {
+                    const clusterUsers = clusters[clusterKey];
+                    const clusterColor = this.clusterColors[clusterKey];
+                    
+                    const centerX = width * 0.2 + (i * width * 0.3);
+                    const centerY = height * 0.5;
+                    
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, 80, 0, 2 * Math.PI);
+                    ctx.fillStyle = clusterColor + '20';
+                    ctx.fill();
+                    ctx.strokeStyle = clusterColor;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    
+                    clusterUsers.forEach((user, userIndex) => {
+                        const angle = (userIndex / clusterUsers.length) * 2 * Math.PI;
+                        const userRadius = 45;
+                        const userX = centerX + Math.cos(angle) * userRadius;
+                        const userY = centerY + Math.sin(angle) * userRadius;
+                        
+                        ctx.beginPath();
+                        ctx.arc(userX, userY, 15, 0, 2 * Math.PI);
+                        ctx.fillStyle = user.color;
+                        ctx.fill();
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                        
+                        ctx.fillStyle = '#374151';
+                        ctx.font = '10px Inter, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(user.name.split(' ')[0], userX, userY + 28);
+                    });
+                    
+                    ctx.fillStyle = '#374151';
+                    ctx.font = 'bold 14px Inter, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(this.clusterNames[clusterKey], centerX, centerY + 110);
+                });
+            }
+
+            highlightUserInGraphs(userKey) {
+                this.drawNetworkGraph();
+                this.drawInterestDistribution();
+                
+                const networkCanvas = document.getElementById('network-canvas');
+                const networkCtx = networkCanvas.getContext('2d');
+                
+                if (this.networkPositions && this.networkPositions[userKey]) {
+                    const pos = this.networkPositions[userKey];
+                    
+                    let pulseRadius = 30;
+                    const animate = () => {
+                        networkCtx.beginPath();
+                        networkCtx.arc(pos.x, pos.y, pulseRadius, 0, 2 * Math.PI);
+                        networkCtx.strokeStyle = '#8b5cf6';
+                        networkCtx.lineWidth = 3;
+                        networkCtx.stroke();
+                        
+                        pulseRadius += 2;
+                        if (pulseRadius < 50) {
+                            requestAnimationFrame(animate);
+                        }
+                    };
+                    animate();
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new InstagramConnectionPool();
+        });
+    </script>
+</body>
+</html>
