@@ -1,0 +1,11 @@
+{
+  "name": "connection-pool-masco",
+  "version": "1.0.0",
+  "description": "Graph-algorithm social connection recommender with a consensus ensemble (MASCO) and a held-out-edge evaluation",
+  "scripts": {
+    "test": "node --test tests/core.test.js",
+    "eval": "node node/run_eval.js --budget 5",
+    "eval:multi": "node node/run_multi_seed.js --seeds 10"
+  },
+  "license": "MIT"
+}
