@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connection Pool + MASCO: social recommendation evaluation</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<header>
+  <h1>Connection Pool and MASCO</h1>
+  <p class="lead">Five graph algorithms recommend new connections. MASCO combines them by consensus. Every number on this page is measured live on a synthetic social graph by hiding some real connections and checking whether each method recovers them.</p>
+</header>
+<main>
+  <section class="panel" aria-label="Evaluation settings">
+    <h2>Run an evaluation</h2>
+    <div class="controls">
+      <label>Users<input id="n" type="number" value="120" min="40" max="300"></label>
+      <label>Random seed<input id="seed" type="number" value="42"></label>
+      <label>Recommendations (k)<input id="k" type="number" value="5" min="1" max="10"></label>
+      <label>Hidden edges (%)<input id="frac" type="number" value="20" min="5" max="50"></label>
+      <label>Latency budget (ms)<input id="budget" type="number" value="5" min="0.5" step="0.5"></label>
+      <button id="run">Run evaluation</button>
+    </div>
+    <p class="note" id="status">Press Run. A 120-user graph takes a few seconds.</p>
+  </section>
+
+  <section class="panel" id="results" hidden aria-live="polite">
+    <h2>Results on hidden connections</h2>
+    <div class="kpis" id="kpis"></div>
+    <div class="scroll"><table id="table"></table></div>
+    <canvas id="chart" aria-label="Precision at k by method" role="img"></canvas>
+    <p class="note">Precision@k: share of the k recommendations that were hidden real connections. Diversity: how many different clusters appear in the list. Runtime is per user on this device.</p>
+  </section>
+
+  <section class="panel">
+    <h2>See MASCO recommend for one user</h2>
+    <div class="controls">
+      <label>User<select id="user"></select></label>
+      <button id="rec">Recommend</button>
+    </div>
+    <div id="recs"></div>
+    <p class="note">Votes show how many of the five algorithms picked each user. Users and connections are synthetic.</p>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script src="js/prng.js"></script>
+<script src="js/graph.js"></script>
+<script src="js/similarity.js"></script>
+<script src="js/metrics.js"></script>
+<script src="js/algorithms/standard.js"></script>
+<script src="js/algorithms/backtracking.js"></script>
+<script src="js/algorithms/knapsack.js"></script>
+<script src="js/algorithms/tsp.js"></script>
+<script src="js/algorithms/maxflow.js"></script>
+<script src="js/masco.js"></script>
+<script src="js/evaluate.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
