@@ -1,0 +1,97 @@
+{
+  "config": {
+    "n": 120,
+    "seed": 42,
+    "k": 5,
+    "testFraction": 0.2,
+    "budgetMs": 5,
+    "wVotes": 0.4,
+    "wScore": 0.6
+  },
+  "graphInfo": {
+    "users": 120,
+    "edges": 304,
+    "heldOutEdges": 61,
+    "evaluatedUsers": 77
+  },
+  "algorithms": {
+    "standard": {
+      "precision": 0.05194805194805196,
+      "recall": 0.15584415584415587,
+      "hitRate": 0.2597402597402597,
+      "ndcg": 0.1076177691667123,
+      "diversity": 0.25,
+      "meanMs": 0.11163871428570507,
+      "users": 77
+    },
+    "backtracking": {
+      "precision": 0.025974025974025972,
+      "recall": 0.07251082251082251,
+      "hitRate": 0.12987012987012986,
+      "ndcg": 0.06837892929080268,
+      "diversity": 0.788961038961039,
+      "meanMs": 0.2597953506493485,
+      "users": 77
+    },
+    "knapsack": {
+      "precision": 0.06233766233766236,
+      "recall": 0.2088744588744589,
+      "hitRate": 0.2987012987012987,
+      "ndcg": 0.11973114835625931,
+      "diversity": 0.25,
+      "meanMs": 0.15329476623375737,
+      "users": 77
+    },
+    "tsp": {
+      "precision": 0.05454545454545456,
+      "recall": 0.15476190476190477,
+      "hitRate": 0.24675324675324675,
+      "ndcg": 0.10668011751257195,
+      "diversity": 0.25,
+      "meanMs": 0.7459608051948179,
+      "users": 77
+    },
+    "maxflow": {
+      "precision": 0.05714285714285716,
+      "recall": 0.18614718614718617,
+      "hitRate": 0.2727272727272727,
+      "ndcg": 0.12852377403808066,
+      "diversity": 0.275974025974026,
+      "meanMs": 15.376493961038962,
+      "users": 77
+    }
+  },
+  "masco": {
+    "precision": 0.05454545454545456,
+    "recall": 0.16883116883116886,
+    "hitRate": 0.2597402597402597,
+    "ndcg": 0.11816104426397424,
+    "diversity": 0.2532467532467532,
+    "meanMs": 16.76946906493506,
+    "users": 77
+  },
+  "mascoBudget": {
+    "algorithms": [
+      "standard",
+      "knapsack",
+      "backtracking",
+      "tsp"
+    ],
+    "precision": 0.04935064935064937,
+    "recall": 0.14285714285714285,
+    "hitRate": 0.24675324675324675,
+    "ndcg": 0.09811463099003645,
+    "diversity": 0.25,
+    "meanMs": 1.4414635714285629,
+    "users": 77
+  },
+  "bestSingle": "knapsack",
+  "improvementPct": -12.50000000000001,
+  "calibrationMs": {
+    "standard": 0.5719628,
+    "backtracking": 1.2410857,
+    "knapsack": 0.6107198999999994,
+    "tsp": 1.7696046000000003,
+    "maxflow": 18.3426567
+  }
+}
